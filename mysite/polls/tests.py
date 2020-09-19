@@ -117,3 +117,16 @@ class QuestionIndexViewTests(TestCase):
             response.context['latest_question_list'],
             ['<Question: Past question 2.>', '<Question: Past question 1.>']
         )
+
+class TestModels(TestCase):
+
+    def test_published(self):
+        time = timezone.now() - datetime.timedelta(days=1)
+        question = Question(pub_date=time)
+        self.assertTrue(question.is_published())
+
+    def test_can_vote(self):
+        time_open = timezone.now() - datetime.timedelta(days=1)
+        time_close = timezone.now() + datetime.timedelta(days=1)
+        question = Question(pub_date=time_open,end_date=time_close)
+        self.assertTrue(question.can_vote())

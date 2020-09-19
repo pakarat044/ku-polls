@@ -4,6 +4,8 @@ from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
 from .models import Choice, Question
+from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist
 
 class IndexView(generic.ListView):
     template_name = 'polls/index.html'
@@ -21,6 +23,17 @@ class IndexView(generic.ListView):
 class DetailView(generic.DetailView):
     model = Question
     template_name = 'polls/detail.html'
+    
+    def get(self, request, **kwargs):
+        try:
+            question = Question.objects.get(pk=kwargs['pk'])
+            if not question.can_vote() :
+                return HttpResponseRedirect(reverse('polls:index'), messages.error(request, "poll is closed"))
+        except ObjectDoesNotExist:
+            return HttpResponseRedirect(reverse('polls:index'), messages.error(request, "poll is not exist."))
+        self.object = self.get_object()
+        return self.render_to_response(self.get_context_data(object=self.get_object()))
+
     def get_queryset(self):
         """
         Excludes any questions that aren't published yet.
@@ -33,6 +46,9 @@ class ResultsView(generic.DetailView):
 
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
+
+    if not question.can_vote():
+        return HttpResponseRedirect(reverse('polls:index'))
     try:
         selected_choice = question.choice_set.get(pk=request.POST['choice'])
     except (KeyError, Choice.DoesNotExist):
