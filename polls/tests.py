@@ -7,7 +7,7 @@ from .models import Question
 
 
 class QuestionModelTests(TestCase):
-
+    """Condition that publish with different question."""
     def test_was_published_recently_with_future_question(self):
         """
         was_published_recently() returns False for questions whose pub_date
@@ -18,13 +18,13 @@ class QuestionModelTests(TestCase):
         self.assertIs(future_question.was_published_recently(), False)
 
     def test_was_published_recently_with_old_question(self):
-    """
-    was_published_recently() returns False for questions whose pub_date
-    is older than 1 day.
-    """
-    time = timezone.now() - datetime.timedelta(days=1, seconds=1)
-    old_question = Question(pub_date=time)
-    self.assertIs(old_question.was_published_recently(), False)
+        """
+        was_published_recently() returns False for questions whose pub_date
+        is older than 1 day.
+        """
+        time = timezone.now() - datetime.timedelta(days=1, seconds=1)
+        old_question = Question(pub_date=time)
+        self.assertIs(old_question.was_published_recently(), False)
 
     def test_was_published_recently_with_recent_question(self):
         """
@@ -34,6 +34,7 @@ class QuestionModelTests(TestCase):
         time = timezone.now() - datetime.timedelta(hours=23, minutes=59, seconds=59)
         recent_question = Question(pub_date=time)
         self.assertIs(recent_question.was_published_recently(), True)
+
 
 def create_question(question_text, days):
     """
@@ -46,6 +47,7 @@ def create_question(question_text, days):
 
 
 class QuestionIndexViewTests(TestCase):
+    """Condition of question in different time."""
     def test_no_questions(self):
         """
         If no questions exist, an appropriate message is displayed.
@@ -66,10 +68,7 @@ class QuestionIndexViewTests(TestCase):
             response.context['latest_question_list'],
             ['<Question: Past question.>']
         )
-        """
-        The detail view of a question with a pub_date in the past
-        displays the question's text.
-        """
+
         past_question = create_question(question_text='Past Question.', days=-5)
         url = reverse('polls:detail', args=(past_question.id,))
         response = self.client.get(url)
@@ -84,11 +83,9 @@ class QuestionIndexViewTests(TestCase):
         response = self.client.get(reverse('polls:index'))
         self.assertContains(response, "No polls are available.")
         self.assertQuerysetEqual(response.context['latest_question_list'], [])
-        """
-        The detail view of a question with a pub_date in the future
-        returns a 404 not found.
-        """
-        future_question = create_question(question_text='Future question.', days=5)
+
+        future_question = create_question(question_text='Future question.',
+        days=5)
         url = reverse('polls:detail', args=(future_question.id,))
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
@@ -118,15 +115,18 @@ class QuestionIndexViewTests(TestCase):
             ['<Question: Past question 2.>', '<Question: Past question 1.>']
         )
 
-class TestModels(TestCase):
 
+class TestModels(TestCase):
+    """Test models"""
     def test_published(self):
+        """Check this is push already"""
         time = timezone.now() - datetime.timedelta(days=1)
         question = Question(pub_date=time)
         self.assertTrue(question.is_published())
 
     def test_can_vote(self):
+        """ฺBefore close time, it should votable"""
         time_open = timezone.now() - datetime.timedelta(days=1)
         time_close = timezone.now() + datetime.timedelta(days=1)
-        question = Question(pub_date=time_open,end_date=time_close)
+        question = Question(pub_date=time_open, end_date=time_close)
         self.assertTrue(question.can_vote())
