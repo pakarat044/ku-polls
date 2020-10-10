@@ -7,6 +7,7 @@ from .models import Choice, Question
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 
+
 class IndexView(generic.ListView):
     template_name = 'polls/index.html'
     context_object_name = 'latest_question_list'
@@ -20,14 +21,15 @@ class IndexView(generic.ListView):
             pub_date__lte=timezone.now()
         ).order_by('-pub_date')[:5]
 
+
 class DetailView(generic.DetailView):
     model = Question
     template_name = 'polls/detail.html'
-    
+
     def get(self, request, **kwargs):
         try:
             question = Question.objects.get(pk=kwargs['pk'])
-            if not question.can_vote() :
+            if not question.can_vote():
                 return HttpResponseRedirect(reverse('polls:index'), messages.error(request, "poll is closed"))
         except ObjectDoesNotExist:
             return HttpResponseRedirect(reverse('polls:index'), messages.error(request, "poll is not exist."))
@@ -40,9 +42,11 @@ class DetailView(generic.DetailView):
         """
         return Question.objects.filter(pub_date__lte=timezone.now())
 
+
 class ResultsView(generic.DetailView):
     model = Question
     template_name = 'polls/results.html'
+
 
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
@@ -64,11 +68,3 @@ def vote(request, question_id):
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
-
-class IndexView(generic.ListView):
-    template_name = 'polls/index.html'
-    context_object_name = 'latest_question_list'
-
-    def get_queryset(self):
-        """Return the last five published questions."""
-        return Question.objects.order_by('-pub_date')[:5]
