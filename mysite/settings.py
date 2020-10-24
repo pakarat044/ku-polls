@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = '!(^#q^(=m#1#w(07c*hc$a(j5n%4fnreda6z=pno3r=x9+&%rp'
 DEBUG = True
-
+ 
 ALLOWED_HOSTS = []
 
 
