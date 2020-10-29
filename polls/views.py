@@ -7,7 +7,38 @@ from .models import Choice, Question, Vote
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
+import logging
+from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
+from django.dispatch import receiver
+import logging.config
 
+from .settings import LOGGING
+
+
+
+logging.config.dictConfig(LOGGING)
+logs = logging.getLogger("polls")
+
+def get_client_ip(request):
+    """ Get the client's ip"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+@receiver(user_logged_in)
+def user_in_logging(sender, request, user, **kwargs):
+    logs.info(f'username: {user.username} ip: {get_client_ip(request)} login')
+
+@receiver(user_logged_out)
+def user_out_logging(sender, request, user, **kwargs):
+    logs.info(f'username: {user.username} ip: {get_client_ip(request)} logout')
+
+@receiver(user_login_failed)
+def user_failed_in_logging(sender, request, credentials, **kwargs):
+    logs.warning(f'username: {request.POST["username"]} ip: {get_client_ip(request)} fail login')
 
 
 class IndexView(generic.ListView):
@@ -70,6 +101,7 @@ def vote(request, question_id):
         for choice in question.choice_set.all():
             choice.votes = Vote.objects.filter(question=question).filter(choice=choice).count()
             choice.save()
+        logs.info(f'username: {user.username} ip: {get_client_ip(request)} vote on question id: {question_id}')
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
