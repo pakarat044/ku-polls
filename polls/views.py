@@ -3,9 +3,11 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
-from .models import Choice, Question
+from .models import Choice, Question, Vote
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
+
 
 
 class IndexView(generic.ListView):
@@ -47,10 +49,10 @@ class ResultsView(generic.DetailView):
     model = Question
     template_name = 'polls/results.html'
 
-
+@login_required
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
-
+    user = request.user
     if not question.can_vote():
         return HttpResponseRedirect(reverse('polls:index'))
     try:
@@ -62,8 +64,10 @@ def vote(request, question_id):
             'error_message': "You didn't select a choice.",
         })
     else:
-        selected_choice.votes += 1
-        selected_choice.save()
+        Vote.objects.update_or_create(user=user, question=question, defaults={'choice': selected_choice})
+        for choice in question.choice_set.all():
+            choice.votes = Vote.objects.filter(question=question).filter(choice=choice).count()
+            choice.save()
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
