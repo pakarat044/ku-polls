@@ -7,6 +7,7 @@ class Question(models.Model):
     question_text = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date published')
     end_date = models.DateTimeField('date end', default=timezone.now() + datetime.timedelta(days=1))
+    previous_choice = models.CharField(max_length=100, default='')
 
     def __str__(self):
         return self.question_text

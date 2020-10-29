@@ -65,6 +65,8 @@ def vote(request, question_id):
         })
     else:
         Vote.objects.update_or_create(user=user, question=question, defaults={'choice': selected_choice})
+        question.previous_choice = str(user.vote_set.get(question=question).choice)
+        question.save()
         for choice in question.choice_set.all():
             choice.votes = Vote.objects.filter(question=question).filter(choice=choice).count()
             choice.save()

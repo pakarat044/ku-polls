@@ -1,5 +1,5 @@
 <h1>{{ question.question_text }}</h1>
-
+{% if question.previous_choice %}<p> Previous choice"{{question.previous_choice}}"</p>{% endif %}
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
 <form action="{% url 'polls:vote' question.id %}" method="post">
