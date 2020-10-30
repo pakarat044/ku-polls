@@ -98,9 +98,6 @@ def vote(request, question_id):
         Vote.objects.update_or_create(user=user, question=question, defaults={'choice': selected_choice})
         question.previous_choice = str(user.vote_set.get(question=question).choice)
         question.save()
-        for choice in question.choice_set.all():
-            choice.votes = Vote.objects.filter(question=question).filter(choice=choice).count()
-            choice.save()
         logs.info(f'username: {user.username} ip: {get_client_ip(request)} vote on question id: {question_id}')
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
